@@ -15,6 +15,8 @@ type Movie struct{
 	ID string `json:"id"`
 	Isbn string `json:"isbn"`
 	Title string `json:"title"`
+	Year int    `json:"year"`
+    Rating float64 `json:"rating"`
 	Director *Director `json:"director"`
 }
 
@@ -68,12 +70,55 @@ func createMovie(w http.ResponseWriter , req *http.Request){
 
 }
 
+func updateMovieById(w http.ResponseWriter , req *http.Request){
+	w.Header().Set("Context-Type", "application/json")
+	params := mux.Vars(req)
+	var movie Movie
+	_ : json.NewDecoder(req.Body).Decode(&movie)
+	
+	index := -1
+	for i , item := range movies {
+		if params["id"] == item.ID {
+			index = i
+		}
+	}
+
+	if index == -1 {
+		fmt.Fprintf(w, "Movie not found")
+	}
+
+	if movie.Title != "" {
+		movies[index].Title = movie.Title
+	}
+
+	if movie.Rating != 0 {
+		movies[index].Rating = movie.Rating
+	}
+
+	if movie.Year != 0 {
+		movies[index].Year = movie.Year
+	}
+
+	if movie.Director.Firstname != "" {
+		movies[index].Director.Firstname = movie.Director.Firstname
+	}
+
+	if movie.Director.Lastname != "" {
+		movies[index].Director.Lastname = movie.Director.Lastname
+	}
+
+	json.NewEncoder(w).Encode(movies[index])
+
+
+	
+}
+
 
 
 func main() {
 	r := mux.NewRouter()
-	movies = append(movies , Movie{ID : "1"  , Isbn : "438227" , Title : "Movie one" , Director : &Director{Firstname : "avinash" , Lastname : "Sura"}})
-	movies = append(movies , Movie{ID : "2"  , Isbn : "438228" , Title : "Movie two" , Director : &Director{Firstname : "kalyan" , Lastname : "pokkula"}})
+	movies = append(movies , Movie{ID : "1"  , Isbn : "438227" , Title : "Movie one" , Year: 2022 , Rating: 4, Director : &Director{Firstname : "avinash" , Lastname : "Sura"}})
+	movies = append(movies , Movie{ID : "2"  , Isbn : "438228" , Title : "Movie two" ,Year: 2022 , Rating: 4, Director : &Director{Firstname : "kalyan" , Lastname : "pokkula"}})
 	r.HandleFunc("/movies" , getMovies).Methods("GET")
 	r.HandleFunc("/movies/{id}",getMovieById).Methods("GET")
 	r.HandleFunc("/movies", createMovie).Methods("POST")
